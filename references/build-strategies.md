@@ -19,7 +19,7 @@
 
 ## 2. 只有 ESM/CommonJS：esbuild 生成 IIFE（默认推荐）
 
-1. 使用固定版本 npm 包。
+1. 用 pnpm 安装固定版本依赖，并提交 `pnpm-lock.yaml`。
 2. 写一个很小的 src/entry.js，只导出需要的 API。
 3. esbuild 使用 bundle: true、format: "iife"、platform: "browser"。
 4. 禁止 code splitting 和 sourcemap。
@@ -182,19 +182,20 @@ React.useEffect(() => {
 
 - 只用官方或用户明确指定的来源，记录准确版本和下载位置。
 - 检查许可证是否允许打包、修改和再分发，保留要求保留的版权/许可证注释。
-- 检查 lockfile 与实际安装版本，避免依赖漂移。
+- 检查 pnpm-lock.yaml 与实际安装版本，避免依赖漂移。
 - 审计安装脚本、远程请求、遥测、动态代码执行和敏感数据访问。
 - 审计 Bundle 创建的所有全局变量：除声明的 globalName 和有意的 CSS Marker 外不应泄漏临时全局。
 - 不接受普通终端用户上传任意 Bundle；若产品未来开放给非受信任用户，需要独立进程/源、CSP、权限和审核模型。
 
 ## 8. 推荐工作目录
 
-不要把 npm 缓存、node_modules 或中间产物放进 Forguncy 仓库：
+不要把包管理器缓存、node_modules 或中间产物放进 Forguncy 仓库：
 
 ~~~text
 <package-workdir>/
   package.json
-  package-lock.json
+  pnpm-workspace.yaml
+  pnpm-lock.yaml
   build.mjs
   validate.mjs
   src/entry.js
@@ -205,4 +206,17 @@ React.useEffect(() => {
 ~~~
 
 最终只交付 ZIP，同时保留构建脚本、锁文件和验证结果，保证以后可升级版本。
+
+### pnpm 的两个硬约束
+
+- **必须放行 esbuild 的构建脚本。** pnpm 10.3 起 `strictDepBuilds` 默认开启，依赖的 pre/postinstall 一律不执行，未审查的构建会让 install 以 `ERR_PNPM_IGNORED_BUILDS` 退出。esbuild 的 postinstall 负责生成 `node_modules/esbuild/index.js`，被跳过时 `build.mjs` 会直接 `ERR_MODULE_NOT_FOUND`。配置只认 `pnpm-workspace.yaml` 里的 `allowBuilds` 映射（pnpm 11 已移除 `onlyBuiltDependencies`）：
+
+  ~~~yaml
+  allowBuilds:
+    esbuild: true
+  ~~~
+
+  新增任何带 install 脚本的依赖（原生模块、字体/图标包等）都要显式加一行 `true` 或 `false`；未列出的包默认拒绝。
+
+- **提交 lockfile 并用 `--frozen-lockfile` 复现。** 首次 `pnpm install` 生成 `pnpm-lock.yaml`，之后重装用 `pnpm install --frozen-lockfile`。若厂商库对扁平 node_modules 有解析假设，可在 `pnpm-workspace.yaml` 设 `nodeLinker: hoisted` 退回 npm 式布局。
 

@@ -2,6 +2,7 @@
   "private": true,
   "type": "module",
   "name": "forguncy-frontend-library-__LIBRARY_ID__",
+  "packageManager": "pnpm@11.1.2",
   "scripts": {
     "build": "node build.mjs",
     "validate": "node validate.mjs",

@@ -9,12 +9,18 @@
 ## 顺序
 
 ~~~bash
-npm ci
-npm run build
-npm run validate
-npm run smoke
-npm run pack
+pnpm install
+pnpm run build
+pnpm run validate
+pnpm run smoke
+pnpm run pack
 ~~~
+
+首次 `pnpm install` 会生成 `pnpm-lock.yaml`，请提交它；此后重装用 `pnpm install --frozen-lockfile` 复现同一依赖树。
+
+`pnpm-workspace.yaml` 里的 `allowBuilds: { esbuild: true }` 不能删：pnpm 11 默认拒绝执行依赖的
+postinstall 脚本，esbuild 的 `index.js` 就是在那一步生成的，删掉后 `pnpm run build` 会直接
+`ERR_MODULE_NOT_FOUND`。新增任何带 install 脚本的依赖时同样要在这里放行。
 
 ## 还需要人工完成的
 

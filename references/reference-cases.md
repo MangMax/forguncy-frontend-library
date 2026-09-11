@@ -4,7 +4,7 @@
 
 ## React Three Fiber：复用宿主 React
 
-关键不是把 npm 目录整体压缩，而是建立清晰的宿主边界：
+关键不是把厂商包目录整体压缩，而是建立清晰的宿主边界：
 
 - 把 @react-three/fiber 和 three 打入同一个 Bundle。
 - 把 react、react-dom、react-dom/client 映射到 ReactCellType 已提供的 React 和 ReactDOM。

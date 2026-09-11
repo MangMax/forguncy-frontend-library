@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// 生成前端扩展包工作目录骨架：package.json / package-lock 占位说明 / build.mjs / src/entry.js / scripts / README。
+// 生成前端扩展包工作目录骨架：package.json / pnpm-workspace.yaml / build.mjs / src/entry.js / 校验打包脚本 / README。
+// 不生成 lockfile：首次 pnpm install 时才生成 pnpm-lock.yaml，之后提交它以保证可复现。
 // 骨架里的 ID、版本、全局名都是占位值，必须按目标类库改成真实分析结果后再构建。
 // 用法: node scaffold_package.mjs --dir <package-workdir> --id vendor-library --global VendorLibrary --version 1.2.3 [--name "<显示名>"]
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -44,12 +45,16 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.dirname(here);
 const scaffoldDir = path.join(skillRoot, "assets", "package-template");
 
+// <SKILL_ROOT> 只出现在模板里双引号包裹的 JS 字符串字面量中。
+// Windows 路径的反斜杠必须先转义，否则 \W \P \f 会被当成转义序列，把路径吃成 C:WorkFileProject...
+const skillRootLiteral = skillRoot.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+
 const placeholderMap = {
   "__LIBRARY_ID__": id,
   "__GLOBAL_NAME__": globalName,
   "__VERSION__": version,
   "__DISPLAY_NAME__": displayName,
-  "<SKILL_ROOT>": skillRoot
+  "<SKILL_ROOT>": skillRootLiteral
 };
 
 function render(text) {
@@ -61,6 +66,7 @@ function render(text) {
 
 const files = [
   ["package.json", "package.json"],
+  ["pnpm-workspace.yaml", "pnpm-workspace.yaml"],
   ["build.mjs", "build.mjs"],
   ["src/entry.js", path.join("src", "entry.js")],
   ["validate.mjs", "validate.mjs"],
@@ -84,6 +90,8 @@ console.log(JSON.stringify({
   written,
   next: [
     "按类库真实分析结果改写 src/entry.js 与 build.mjs 里的 manifest 配置",
-    "node build.mjs && node validate.mjs && node smoke.mjs && node pack.mjs"
+    "在 package.json 里把 __LIBRARY_ID__ / __VERSION__ 依赖项改成目标类库的真实名称与固定版本",
+    "pnpm install（首次会生成 pnpm-lock.yaml，请提交它）",
+    "pnpm run build && pnpm run validate && pnpm run smoke && pnpm run pack"
   ]
 }, null, 2));

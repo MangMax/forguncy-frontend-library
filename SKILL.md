@@ -30,7 +30,7 @@ description: 活字格 ReactCellType 前端扩展包打包专家。把一个浏�
 ## 工作流
 
 1. 兼容性分析（先做，别急着写代码）：类库名、准确版本、来源、许可证、目标能力范围；能否成为浏览器端单文件经典脚本；检查动态 import、chunk、Worker、WASM、字体图片、宿主全局冲突、体积。结论三选一：可打包 / 有条件可打包 / 不适合当前机制。不适合时给阻断证据 + 最小平台扩展建议，然后停止。
-2. 锁定来源与版本：只用官方或用户指定来源；固定 npm 版本并提交 lockfile；保留许可证要求的版权声明。
+2. 锁定来源与版本：只用官方或用户指定来源；用 pnpm 固定版本并提交 pnpm-lock.yaml；保留许可证要求的版权声明。
 3. 选构建策略：按 references/build-strategies.md 的决策表选厂商 UMD / esbuild IIFE / React 宿主复用 / 全局隔离，并写明理由。
 4. 建独立包工作目录：不要在 Forguncy 仓库里放 node_modules 或中间产物；用 scripts/scaffold_package.mjs 生成骨架。
 5. 生成三件套：manifest.json、bundle.js、types.d.ts；types 必须反映真实门面，不得用 any 降级冒充完整类型。

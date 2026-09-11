@@ -32,7 +32,9 @@ description: 活字格 ReactCellType 前端扩展包打包专家。把一个浏�
 1. 兼容性分析（先做，别急着写代码）：类库名、准确版本、来源、许可证、目标能力范围；能否成为浏览器端单文件经典脚本；检查动态 import、chunk、Worker、WASM、字体图片、宿主全局冲突、体积。结论三选一：可打包 / 有条件可打包 / 不适合当前机制。不适合时给阻断证据 + 最小平台扩展建议，然后停止。
 2. 锁定来源与版本：只用官方或用户指定来源；用 pnpm 固定版本并提交 pnpm-lock.yaml；保留许可证要求的版权声明。
 3. 选构建策略：按 references/build-strategies.md 的决策表选厂商 UMD / esbuild IIFE / React 宿主复用 / 全局隔离，并写明理由。
-4. 建独立包工作目录：不要在 Forguncy 仓库里放 node_modules 或中间产物；用 scripts/scaffold_package.mjs 生成骨架。
+4. 建包工作目录：不要在 Forguncy 仓库里放 node_modules 或中间产物；用 scripts/scaffold_package.mjs 生成骨架。
+   只做一个包 → `--template package`（单包工作目录）；要长期维护多个包 → `--template monorepo`
+   （packages/<id> + tooling/pack-tools + pnpm workspace + vp 任务编排 + git-cliff）。
 5. 生成三件套：manifest.json、bundle.js、types.d.ts；types 必须反映真实门面，不得用 any 降级冒充完整类型。
 6. 静态校验：跑 scripts/validate_package.mjs（结构、编码、大小、Manifest 规则、保留名、bundle 经典脚本解析、types 脚本模式、globalName 声明）。
 7. 烟雾测试：先跑 scripts/smoke_bundle.mjs 通用闸门，再针对该类库写最小功能测试；DOM/Canvas/WebGL 必须用真实浏览器。
@@ -51,7 +53,11 @@ description: 活字格 ReactCellType 前端扩展包打包专家。把一个浏�
 
 ## 资产与参考件
 
-- scripts/scaffold_package.mjs：生成包工作目录骨架（渲染 assets/package-template：package.json / build.mjs / src/entry.js / validate|smoke|pack.mjs）。
+- scripts/scaffold_package.mjs：生成骨架，两种模板二选一：
+  - `--template package`（默认）→ 渲染 assets/package-template：单包工作目录，package.json / pnpm-workspace.yaml / build.mjs / src/entry.js / validate|smoke|pack.mjs / README。
+  - `--template monorepo` → 渲染 assets/monorepo-template：多包仓库，packages/<id>/{src,scripts,tests} + tooling/pack-tools + templates/package（成员骨架）+ pnpm-workspace.yaml + cliff.toml + CI；
+    第一个包由 `--id/--global/--version` 播种，后续用生成物里的 `vp run new-package <id>` 加包。
+    复制时会**原样**保留 tooling/ 与 templates/（它们的代码本身就写着占位符，渲染会改坏源码）。
 - scripts/validate_package.mjs：通用静态校验，对齐平台硬限制。
 - scripts/smoke_bundle.mjs：通用 vm 烟雾闸门（全局创建、幂等、冲突拒绝、宿主全局未替换、CSS Marker 唯一）。
 - scripts/pack_package.mjs：跨平台确定性 ZIP（三条目 + 大小 + SHA-256），替代指南中仅 Windows 的 pack.ps1。
